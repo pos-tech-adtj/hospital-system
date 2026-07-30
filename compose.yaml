@@ -1,0 +1,99 @@
+services:
+
+  # Banco de dados PostgreSQL compartilhado pelo agendamento-service
+  # (que também expõe o histórico médico via GraphQL) e pelo notificacao-service.
+  postgres-agendamento:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hospital}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hospital}
+      POSTGRES_DB: ${POSTGRES_DB:-hospital_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_agendamento_data:/var/lib/postgresql/data
+    networks:
+      - hospital-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hospital} -d ${POSTGRES_DB:-hospital_db}" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Broker de mensagens usado para a comunicação assíncrona entre
+  # o agendamento-service (publisher) e o notificacao-service (consumer).
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-hospital}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-hospital}
+    ports:
+      - "5672:5672"     # protocolo AMQP
+      - "15672:15672"   # painel de gerenciamento
+    networks:
+      - hospital-network
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Serviço de agendamento de consultas.
+  # Também expõe o histórico médico via GraphQL (acoplado a este serviço).
+  agendamento-service:
+    build:
+      context: ./api-agendamento
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-agendamento:5432/${POSTGRES_DB:-hospital_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-hospital}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-hospital}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-hospital}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-hospital}
+    networks:
+      - hospital-network
+    depends_on:
+      postgres-agendamento:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # Serviço de notificações. Consome os eventos publicados pelo
+  # agendamento-service no RabbitMQ e envia os lembretes aos pacientes.
+  notificacao-service:
+    build:
+      context: ./api-notificacao
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-agendamento:5432/${POSTGRES_DB:-hospital_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-hospital}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-hospital}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_USER:-hospital}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-hospital}
+    networks:
+      - hospital-network
+    depends_on:
+      postgres-agendamento:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres_agendamento_data:
+
+networks:
+  hospital-network:
+    driver: bridge
+    name: hospital_network
