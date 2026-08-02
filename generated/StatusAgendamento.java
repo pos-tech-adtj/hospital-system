@@ -1,0 +1,1 @@
+enum StatusAgendamento {AGENDADA,REALIZADA,CANCELADA}
