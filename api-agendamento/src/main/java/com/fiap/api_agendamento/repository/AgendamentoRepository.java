@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface AgendamentoRepository
         extends JpaRepository<Agendamento, UUID> {
 
-        List<Agendamento> findByPacienteId(UUID pacienteId);
+        List<Agendamento> findAllByOrderByDataHoraDesc();
+
+        List<Agendamento> findByPacienteIdOrderByDataHoraDesc(UUID pacienteId);
 
 }
