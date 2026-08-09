@@ -2,6 +2,7 @@ package com.fiap.api_agendamento.config;
 
 import com.fiap.api_agendamento.domain.Usuario;
 import com.fiap.api_agendamento.repository.UsuarioRepository;
+import com.fiap.api_agendamento.security.UsuarioPrincipal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -9,7 +10,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -48,10 +48,6 @@ public class SecurityConfig {
     }
 
     private UserDetails toUserDetails(Usuario usuario) {
-        return User.withUsername(usuario.getEmail())
-                .password(usuario.getSenha())
-                .roles(usuario.getTipo().name())
-                .disabled(!usuario.isAtivo())
-                .build();
+        return UsuarioPrincipal.from(usuario);
     }
 }

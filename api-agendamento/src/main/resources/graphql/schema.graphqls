@@ -1,0 +1,17 @@
+type Query {
+    usuarioAutenticado: UsuarioAutenticado!
+}
+
+type UsuarioAutenticado {
+    id: ID!
+    nome: String!
+    email: String!
+    tipo: TipoUsuario!
+    authorities: [String!]!
+}
+
+enum TipoUsuario {
+    MEDICO
+    ENFERMEIRO
+    PACIENTE
+}
