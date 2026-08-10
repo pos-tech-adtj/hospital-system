@@ -4,6 +4,24 @@ type Query {
     agendamentosPorPaciente(idPaciente: ID!): [Agendamento!]!
 }
 
+type Mutation {
+    registrarConsulta(
+        pacienteId: ID!
+        medicoId: ID!
+        dataHora: String!
+        especialidade: String!
+        observacoes: String
+    ): Agendamento!
+
+    editarConsulta(
+        idConsulta: ID!
+        dataHora: String
+        status: StatusAgendamento
+        especialidade: String
+        observacoes: String
+    ): Agendamento!
+}
+
 type UsuarioAutenticado {
     id: ID!
     nome: String!

@@ -30,17 +30,21 @@ public class Agendamento {
     @Column(name = "paciente_id", nullable = false)
     private UUID pacienteId;
 
+    @Setter
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", nullable = false, columnDefinition = "status_agendamento_enum")
     private StatusAgendamento status;
 
+    @Setter
     @Column(nullable = false, length = 120)
     private String especialidade;
 
+    @Setter
     @Column(length = 1000)
     private String observacoes;
 
