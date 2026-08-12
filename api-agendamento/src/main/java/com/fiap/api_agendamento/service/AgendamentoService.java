@@ -3,12 +3,17 @@ package com.fiap.api_agendamento.service;
 import com.fiap.api_agendamento.domain.Agendamento;
 import com.fiap.api_agendamento.domain.StatusAgendamento;
 import com.fiap.api_agendamento.domain.TipoUsuario;
+import com.fiap.api_agendamento.dto.HistoricoConsultaFiltro;
 import com.fiap.api_agendamento.repository.AgendamentoRepository;
 import com.fiap.api_agendamento.security.UsuarioPrincipal;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,20 +46,40 @@ public class AgendamentoService {
         return agendamentoRepository.findByPacienteIdOrderByDataHoraDesc(idPaciente);
     }
 
-    public List<Agendamento> listarHistoricoConsultas() {
+    public List<Agendamento> listarHistoricoConsultas(HistoricoConsultaFiltro filtro) {
         UsuarioPrincipal principal = usuarioAutenticadoService.obterPrincipal();
 
-        if (principal.getTipo() == TipoUsuario.PACIENTE) {
-            return agendamentoRepository.findByPacienteIdOrderByDataHoraDesc(principal.getId());
-        }
+        return agendamentoRepository.findAll(
+                especificacao(filtro, principal),
+                Sort.by(Sort.Direction.DESC, "dataHora")
+        );
+    }
 
-        return agendamentoRepository.findAllByOrderByDataHoraDesc();
+    private Specification<Agendamento> especificacao(HistoricoConsultaFiltro filtro, UsuarioPrincipal principal) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (principal.getTipo() == TipoUsuario.PACIENTE) {
+                predicates.add(cb.equal(root.get("pacienteId"), principal.getId()));
+            }
+
+            if (filtro != null) {
+                if (filtro.status() != null) {
+                    predicates.add(cb.equal(root.get("status"), filtro.status()));
+                }
+                if (Boolean.TRUE.equals(filtro.apenasFuturas())) {
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("dataHora"), OffsetDateTime.now()));
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 
     public Agendamento registrarConsulta(
             UUID pacienteId,
             UUID medicoId,
-            LocalDateTime dataHora,
+            OffsetDateTime dataHora,
             String especialidade,
             String observacoes
     ) {
@@ -74,7 +99,7 @@ public class AgendamentoService {
 
     public Agendamento editarConsulta(
             UUID id,
-            LocalDateTime dataHora,
+            OffsetDateTime dataHora,
             StatusAgendamento status,
             String especialidade,
             String observacoes

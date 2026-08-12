@@ -8,7 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -32,7 +32,7 @@ public class Agendamento {
 
     @Setter
     @Column(name = "data_hora", nullable = false)
-    private LocalDateTime dataHora;
+    private OffsetDateTime dataHora;
 
     @Setter
     @Enumerated(EnumType.STRING)
@@ -50,9 +50,9 @@ public class Agendamento {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 }
