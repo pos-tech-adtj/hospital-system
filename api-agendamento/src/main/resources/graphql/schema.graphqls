@@ -7,21 +7,26 @@ type Query {
 }
 
 type Mutation {
-    registrarConsulta(
-        pacienteId: ID!
-        medicoId: ID!
-        dataHora: DateTime!
-        especialidade: String!
-        observacoes: String
-    ): Agendamento!
-
+    registrarConsulta(input: RegistrarConsultaInput!): Agendamento!
     editarConsulta(
         idConsulta: ID!
-        dataHora: DateTime
-        status: StatusAgendamento
-        especialidade: String
-        observacoes: String
+        input: EditarConsultaInput
     ): Agendamento!
+}
+
+input RegistrarConsultaInput {
+    pacienteId: ID!
+    medicoId: ID!
+    dataHora: DateTime!
+    especialidade: String!
+    observacoes: String
+}
+
+input EditarConsultaInput {
+    dataHora: DateTime
+    status: StatusAgendamento
+    especialidade: String
+    observacoes: String
 }
 
 type UsuarioAutenticado {

@@ -20,8 +20,13 @@ public class GraphQLExceptionHandler extends DataFetcherExceptionResolverAdapter
                     .build();
         }
 
+        if (ex instanceof ConsultaException consultaEx) {
+            return GraphqlErrorBuilder.newError()
+                    .errorType(ErrorType.BAD_REQUEST)
+                    .message(String.format("[%s] %s", consultaEx.getCodigo(), consultaEx.getMessage()))
+                    .build();
+        }
+
         return null;
     }
 }
-
-
