@@ -1,6 +1,7 @@
 package com.fiap.api_agendamento.repository;
 
 import com.fiap.api_agendamento.domain.Agendamento;
+import com.fiap.api_agendamento.domain.StatusAgendamento;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
@@ -14,5 +15,5 @@ public interface AgendamentoRepository
 
         List<Agendamento> findByPacienteIdOrderByDataHoraDesc(UUID pacienteId);
 
-        Optional<Agendamento> findByMedicoIdAndDataHora(UUID medicoId, OffsetDateTime dataHora);
+        Optional<Agendamento> findByMedicoIdAndDataHoraAndStatus(UUID medicoId, OffsetDateTime dataHora, StatusAgendamento status);
 }

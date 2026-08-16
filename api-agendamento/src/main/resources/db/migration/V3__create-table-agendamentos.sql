@@ -1,8 +1,7 @@
 CREATE TYPE status_agendamento_enum AS ENUM (
     'AGENDADA',
     'CANCELADA',
-    'REALIZADA',
-    'REMARCADA'
+    'REALIZADA'
 );
 
 CREATE TABLE agendamentos
