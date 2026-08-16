@@ -3,7 +3,12 @@ package com.fiap.api_agendamento.service;
 import com.fiap.api_agendamento.domain.Agendamento;
 import com.fiap.api_agendamento.domain.StatusAgendamento;
 import com.fiap.api_agendamento.domain.TipoUsuario;
+import com.fiap.api_agendamento.dto.EditarConsultaInput;
 import com.fiap.api_agendamento.dto.HistoricoConsultaFiltro;
+import com.fiap.api_agendamento.dto.RegistrarConsultaInput;
+import com.fiap.api_agendamento.exception.ConsultaDataPassadaException;
+import com.fiap.api_agendamento.exception.ConsultaHorarioIndisponiveException;
+import com.fiap.api_agendamento.exception.ConsultaNaoEncontradaException;
 import com.fiap.api_agendamento.repository.AgendamentoRepository;
 import com.fiap.api_agendamento.security.UsuarioPrincipal;
 import jakarta.persistence.criteria.Predicate;
@@ -15,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -55,6 +61,53 @@ public class AgendamentoService {
         );
     }
 
+    public Agendamento registrarConsulta(RegistrarConsultaInput input) {
+        // Verifica se a data e hora da consulta é futura
+        validaDataHoraFutura(input.dataHora());
+
+        // Verifica se já existe um agendamento para o mesmo médico e horário
+        verificarDuplicidadeAgendamento(input.medicoId(), input.dataHora());
+
+        Agendamento novoAgendamento = Agendamento.builder()
+                .pacienteId(input.pacienteId())
+                .medicoId(input.medicoId())
+                .dataHora(input.dataHora())
+                .status(StatusAgendamento.AGENDADA)
+                .especialidade(input.especialidade())
+                .observacoes(input.observacoes())
+                .build();
+
+        return agendamentoRepository.save(novoAgendamento);
+    }
+
+    public Agendamento editarConsulta(
+            UUID id,
+            EditarConsultaInput input
+    ) {
+        Agendamento agendamento = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new ConsultaNaoEncontradaException(id));
+
+        if (input.dataHora() != null && !input.dataHora().isEqual(agendamento.getDataHora())) {
+            validaDataHoraFutura(input.dataHora());
+            verificarDuplicidadeAgendamento(agendamento.getMedicoId(), input.dataHora());
+            agendamento.setDataHora(input.dataHora());
+        }
+
+        if (input.status() != null) {
+            agendamento.setStatus(input.status());
+        }
+
+        if (input.especialidade() != null) {
+            agendamento.setEspecialidade(input.especialidade());
+        }
+
+        if (input.observacoes() != null) {
+            agendamento.setObservacoes(input.observacoes());
+        }
+
+        return agendamentoRepository.save(agendamento);
+    }
+
     private Specification<Agendamento> especificacao(HistoricoConsultaFiltro filtro, UsuarioPrincipal principal) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -76,53 +129,18 @@ public class AgendamentoService {
         };
     }
 
-    public Agendamento registrarConsulta(
-            UUID pacienteId,
-            UUID medicoId,
-            OffsetDateTime dataHora,
-            String especialidade,
-            String observacoes
-    ) {
-        usuarioAutenticadoService.obterPrincipal();
-
-        Agendamento novoAgendamento = Agendamento.builder()
-                .pacienteId(pacienteId)
-                .medicoId(medicoId)
-                .dataHora(dataHora)
-                .status(StatusAgendamento.AGENDADA)
-                .especialidade(especialidade)
-                .observacoes(observacoes)
-                .build();
-
-        return agendamentoRepository.save(novoAgendamento);
+    private void validaDataHoraFutura(OffsetDateTime dataHora) {
+        if (dataHora.isBefore(OffsetDateTime.now())) {
+            throw new ConsultaDataPassadaException(dataHora);
+        }
     }
 
-    public Agendamento editarConsulta(
-            UUID id,
-            OffsetDateTime dataHora,
-            StatusAgendamento status,
-            String especialidade,
-            String observacoes
-    ) {
-        Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Consulta não encontrada"));
+    private void verificarDuplicidadeAgendamento(UUID medicoId, OffsetDateTime dataHora) {
+        Optional<Agendamento> agendamentoExistente = agendamentoRepository.findByMedicoIdAndDataHora(medicoId, dataHora);
 
-        if (dataHora != null) {
-            agendamento.setDataHora(dataHora);
+        if (agendamentoExistente.isPresent()) {
+            throw new ConsultaHorarioIndisponiveException(medicoId, dataHora);
         }
-
-        if (status != null) {
-            agendamento.setStatus(status);
-        }
-
-        if (especialidade != null) {
-            agendamento.setEspecialidade(especialidade);
-        }
-
-        if (observacoes != null) {
-            agendamento.setObservacoes(observacoes);
-        }
-
-        return agendamentoRepository.save(agendamento);
     }
+
 }

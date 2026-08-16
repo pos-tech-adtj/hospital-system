@@ -1,15 +1,16 @@
 package com.fiap.api_agendamento.api.graphql;
 
 import com.fiap.api_agendamento.domain.Agendamento;
-import com.fiap.api_agendamento.domain.StatusAgendamento;
+import com.fiap.api_agendamento.dto.EditarConsultaInput;
+import com.fiap.api_agendamento.dto.RegistrarConsultaInput;
 import com.fiap.api_agendamento.service.AgendamentoService;
+import jakarta.validation.Valid;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,25 +31,16 @@ public class AgendamentoResolver {
 
     @MutationMapping
     @PreAuthorize("hasRole('ROLE_ENFERMEIRO')")
-    public Agendamento registrarConsulta(
-            @Argument UUID pacienteId,
-            @Argument UUID medicoId,
-            @Argument OffsetDateTime dataHora,
-            @Argument String especialidade,
-            @Argument String observacoes
-    ) {
-        return agendamentoService.registrarConsulta(pacienteId, medicoId, dataHora, especialidade, observacoes);
+    public Agendamento registrarConsulta(@Valid @Argument RegistrarConsultaInput input) {
+        return agendamentoService.registrarConsulta(input);
     }
 
     @MutationMapping
     @PreAuthorize("hasRole('ROLE_MEDICO')")
     public Agendamento editarConsulta(
             @Argument UUID idConsulta,
-            @Argument OffsetDateTime dataHora,
-            @Argument StatusAgendamento status,
-            @Argument String especialidade,
-            @Argument String observacoes
+            @Valid @Argument EditarConsultaInput input
     ) {
-        return agendamentoService.editarConsulta(idConsulta, dataHora, status, especialidade, observacoes);
+        return agendamentoService.editarConsulta(idConsulta, input);
     }
 }
