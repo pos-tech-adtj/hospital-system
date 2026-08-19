@@ -36,7 +36,7 @@ public class AgendamentoResolver {
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('MEDICO', 'ENFERMEIRO')")
+    @PreAuthorize("hasAnyRole('ROLE_MEDICO', 'ROLE_ENFERMEIRO')")
     public Agendamento editarConsulta(
             @Argument UUID idConsulta,
             @Valid @Argument EditarConsultaInput input
