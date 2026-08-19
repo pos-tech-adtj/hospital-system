@@ -8,6 +8,7 @@ import com.fiap.api_agendamento.dto.HistoricoConsultaFiltro;
 import com.fiap.api_agendamento.dto.RegistrarConsultaInput;
 import com.fiap.api_agendamento.exception.ConsultaDataPassadaException;
 import com.fiap.api_agendamento.exception.ConsultaHorarioIndisponiveException;
+import com.fiap.api_agendamento.exception.ConsultaNaoAgendadaException;
 import com.fiap.api_agendamento.exception.ConsultaNaoEncontradaException;
 import com.fiap.api_agendamento.repository.AgendamentoRepository;
 import com.fiap.api_agendamento.security.UsuarioPrincipal;
@@ -84,8 +85,9 @@ public class AgendamentoService {
             UUID id,
             EditarConsultaInput input
     ) {
-        Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new ConsultaNaoEncontradaException(id));
+        Agendamento agendamento = buscarConsulta(id);
+
+        validarConsultaAgendada(agendamento);
 
         if (input.dataHora() != null && !input.dataHora().isEqual(agendamento.getDataHora())) {
             validaDataHoraFutura(input.dataHora());
@@ -136,11 +138,31 @@ public class AgendamentoService {
     }
 
     private void verificarDuplicidadeAgendamento(UUID medicoId, OffsetDateTime dataHora) {
-        Optional<Agendamento> agendamentoExistente = agendamentoRepository.findByMedicoIdAndDataHora(medicoId, dataHora);
+        Optional<Agendamento> agendamentoExistente = agendamentoRepository.findByMedicoIdAndDataHoraAndStatus(medicoId, dataHora, StatusAgendamento.AGENDADA);
 
         if (agendamentoExistente.isPresent()) {
             throw new ConsultaHorarioIndisponiveException(medicoId, dataHora);
         }
+    }
+
+    private void validarConsultaAgendada(Agendamento agendamento) {
+        if (agendamento.getStatus() != StatusAgendamento.AGENDADA) {
+            throw new ConsultaNaoAgendadaException(agendamento.getId(), agendamento.getStatus());
+        }
+    }
+
+    private Agendamento buscarConsulta(UUID id) {
+        return agendamentoRepository.findById(id).orElseThrow(() -> new ConsultaNaoEncontradaException(id));
+    }
+
+    public Agendamento cancelarConsulta(UUID id) {
+        Agendamento agendamento = buscarConsulta(id);
+
+        // Cancelamento só é permitido para consultas AGENDADAS
+        validarConsultaAgendada(agendamento);
+        agendamento.setStatus(StatusAgendamento.CANCELADA);
+
+        return agendamentoRepository.save(agendamento);
     }
 
 }

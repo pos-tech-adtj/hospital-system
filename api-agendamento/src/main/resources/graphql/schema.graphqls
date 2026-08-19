@@ -10,8 +10,9 @@ type Mutation {
     registrarConsulta(input: RegistrarConsultaInput!): Agendamento!
     editarConsulta(
         idConsulta: ID!
-        input: EditarConsultaInput
+        input: EditarConsultaInput!
     ): Agendamento!
+    cancelarConsulta(idConsulta: ID!): Agendamento!
 }
 
 input RegistrarConsultaInput {
@@ -70,7 +71,6 @@ enum StatusAgendamento {
     AGENDADA
     CANCELADA
     REALIZADA
-    REMARCADA
 }
 
 enum TipoUsuario {
