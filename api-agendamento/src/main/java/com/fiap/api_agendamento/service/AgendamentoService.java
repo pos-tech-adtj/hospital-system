@@ -177,6 +177,21 @@ public class AgendamentoService {
     }
 
     @Transactional
+    public void enviarLembretesConsultasProximas() {
+        OffsetDateTime agora = OffsetDateTime.now();
+        OffsetDateTime limite = agora.plusHours(24);
+
+        List<Agendamento> consultasProximas = agendamentoRepository
+                .findByStatusAndLembreteEnviadoFalseAndDataHoraBetween(StatusAgendamento.AGENDADA, agora, limite);
+
+        for (Agendamento agendamento : consultasProximas) {
+            publicarEventoConsulta(agendamento, ConsultaEvento.TIPO_LEMBRETE);
+            agendamento.setLembreteEnviado(true);
+            agendamentoRepository.save(agendamento);
+        }
+    }
+
+    @Transactional
     public Agendamento cancelarConsulta(UUID id) {
         Agendamento agendamento = buscarConsulta(id);
 

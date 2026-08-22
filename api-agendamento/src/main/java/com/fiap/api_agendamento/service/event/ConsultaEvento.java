@@ -22,4 +22,5 @@ public record ConsultaEvento(
 
     public static final String TIPO_CRIADA = "consulta.criada";
     public static final String TIPO_ATUALIZADA = "consulta.atualizada";
+    public static final String TIPO_LEMBRETE = "consulta.lembrete";
 }

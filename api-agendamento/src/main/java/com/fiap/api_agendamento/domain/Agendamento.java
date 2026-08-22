@@ -48,6 +48,11 @@ public class Agendamento {
     @Column(length = 1000)
     private String observacoes;
 
+    @Setter
+    @Builder.Default
+    @Column(name = "lembrete_enviado", nullable = false)
+    private boolean lembreteEnviado = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

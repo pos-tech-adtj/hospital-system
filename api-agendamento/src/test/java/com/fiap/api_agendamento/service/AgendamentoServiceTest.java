@@ -19,13 +19,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -190,6 +193,86 @@ class AgendamentoServiceTest {
                 () -> agendamentoService.registrarConsulta(input)
         );
 
-        verify(applicationEventPublisher, never()).publishEvent(any());
+        verify(applicationEventPublisher, never()).publishEvent(any(ConsultaEvento.class));
+    }
+
+    @Test
+    void enviarLembretesConsultasProximas_devePublicarLembreteEMarcarComoEnviado() {
+        Agendamento agendamentoProximo = Agendamento.builder()
+                .id(UUID.randomUUID())
+                .pacienteId(paciente.getId())
+                .medicoId(medico.getId())
+                .dataHora(OffsetDateTime.now().plusHours(2))
+                .status(StatusAgendamento.AGENDADA)
+                .especialidade("Cardiologia")
+                .lembreteEnviado(false)
+                .build();
+
+        when(agendamentoRepository.findByStatusAndLembreteEnviadoFalseAndDataHoraBetween(
+                eq(StatusAgendamento.AGENDADA), any(), any()))
+                .thenReturn(List.of(agendamentoProximo));
+        when(usuarioRepository.findById(paciente.getId())).thenReturn(Optional.of(paciente));
+        when(usuarioRepository.findById(medico.getId())).thenReturn(Optional.of(medico));
+        when(agendamentoRepository.save(any(Agendamento.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        agendamentoService.enviarLembretesConsultasProximas();
+
+        ArgumentCaptor<ConsultaEvento> captor = ArgumentCaptor.forClass(ConsultaEvento.class);
+        verify(applicationEventPublisher).publishEvent(captor.capture());
+        assertThat(captor.getValue().tipoEvento()).isEqualTo(ConsultaEvento.TIPO_LEMBRETE);
+        assertThat(captor.getValue().consultaId()).isEqualTo(agendamentoProximo.getId());
+
+        ArgumentCaptor<Agendamento> savedCaptor = ArgumentCaptor.forClass(Agendamento.class);
+        verify(agendamentoRepository).save(savedCaptor.capture());
+        assertThat(savedCaptor.getValue().isLembreteEnviado()).isTrue();
+    }
+
+    @Test
+    void enviarLembretesConsultasProximas_semConsultasProximas_naoPublicaNemSalva() {
+        when(agendamentoRepository.findByStatusAndLembreteEnviadoFalseAndDataHoraBetween(
+                eq(StatusAgendamento.AGENDADA), any(), any()))
+                .thenReturn(List.of());
+
+        agendamentoService.enviarLembretesConsultasProximas();
+
+        verify(applicationEventPublisher, never()).publishEvent(any(ConsultaEvento.class));
+        verify(agendamentoRepository, never()).save(any());
+    }
+
+    @Test
+    void enviarLembretesConsultasProximas_comMultiplasConsultas_publicaUmLembretePorConsulta() {
+        Agendamento primeira = Agendamento.builder()
+                .id(UUID.randomUUID())
+                .pacienteId(paciente.getId())
+                .medicoId(medico.getId())
+                .dataHora(OffsetDateTime.now().plusHours(1))
+                .status(StatusAgendamento.AGENDADA)
+                .especialidade("Cardiologia")
+                .lembreteEnviado(false)
+                .build();
+
+        Agendamento segunda = Agendamento.builder()
+                .id(UUID.randomUUID())
+                .pacienteId(paciente.getId())
+                .medicoId(medico.getId())
+                .dataHora(OffsetDateTime.now().plusHours(10))
+                .status(StatusAgendamento.AGENDADA)
+                .especialidade("Dermatologia")
+                .lembreteEnviado(false)
+                .build();
+
+        when(agendamentoRepository.findByStatusAndLembreteEnviadoFalseAndDataHoraBetween(
+                eq(StatusAgendamento.AGENDADA), any(), any()))
+                .thenReturn(List.of(primeira, segunda));
+        when(usuarioRepository.findById(paciente.getId())).thenReturn(Optional.of(paciente));
+        when(usuarioRepository.findById(medico.getId())).thenReturn(Optional.of(medico));
+        when(agendamentoRepository.save(any(Agendamento.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        agendamentoService.enviarLembretesConsultasProximas();
+
+        verify(applicationEventPublisher, times(2)).publishEvent(any(ConsultaEvento.class));
+        verify(agendamentoRepository, times(2)).save(any(Agendamento.class));
     }
 }
