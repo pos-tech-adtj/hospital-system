@@ -16,4 +16,7 @@ public interface AgendamentoRepository
         List<Agendamento> findByPacienteIdOrderByDataHoraDesc(UUID pacienteId);
 
         Optional<Agendamento> findByMedicoIdAndDataHoraAndStatus(UUID medicoId, OffsetDateTime dataHora, StatusAgendamento status);
+
+        List<Agendamento> findByStatusAndLembreteEnviadoFalseAndDataHoraBetween(
+                StatusAgendamento status, OffsetDateTime inicio, OffsetDateTime fim);
 }
