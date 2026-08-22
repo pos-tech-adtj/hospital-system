@@ -13,15 +13,7 @@ public class ConsultaEventPublisher {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void publicarConsultaCriada(ConsultaEvento evento) {
-        publicar(ConsultaEvento.TIPO_CRIADA, evento);
-    }
-
-    public void publicarConsultaAtualizada(ConsultaEvento evento) {
-        publicar(ConsultaEvento.TIPO_ATUALIZADA, evento);
-    }
-
-    private void publicar(String routingKey, ConsultaEvento evento) {
-        rabbitTemplate.convertAndSend(RabbitMqConfig.CONSULTAS_EXCHANGE, routingKey, evento);
+    public void publicar(ConsultaEvento evento) {
+        rabbitTemplate.convertAndSend(RabbitMqConfig.CONSULTAS_EXCHANGE, evento.tipoEvento(), evento);
     }
 }

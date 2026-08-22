@@ -3,6 +3,7 @@ package com.fiap.api_agendamento.service;
 import com.fiap.api_agendamento.domain.Agendamento;
 import com.fiap.api_agendamento.domain.StatusAgendamento;
 import com.fiap.api_agendamento.domain.TipoUsuario;
+import com.fiap.api_agendamento.domain.Usuario;
 import com.fiap.api_agendamento.dto.EditarConsultaInput;
 import com.fiap.api_agendamento.dto.HistoricoConsultaFiltro;
 import com.fiap.api_agendamento.dto.RegistrarConsultaInput;
@@ -11,12 +12,16 @@ import com.fiap.api_agendamento.exception.ConsultaHorarioIndisponiveException;
 import com.fiap.api_agendamento.exception.ConsultaNaoAgendadaException;
 import com.fiap.api_agendamento.exception.ConsultaNaoEncontradaException;
 import com.fiap.api_agendamento.repository.AgendamentoRepository;
+import com.fiap.api_agendamento.repository.UsuarioRepository;
 import com.fiap.api_agendamento.security.UsuarioPrincipal;
+import com.fiap.api_agendamento.service.event.ConsultaEvento;
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -28,14 +33,20 @@ import java.util.UUID;
 public class AgendamentoService {
 
     private final AgendamentoRepository agendamentoRepository;
+    private final UsuarioRepository usuarioRepository;
     private final UsuarioAutenticadoService usuarioAutenticadoService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     public AgendamentoService(
             AgendamentoRepository agendamentoRepository,
-            UsuarioAutenticadoService usuarioAutenticadoService
+            UsuarioRepository usuarioRepository,
+            UsuarioAutenticadoService usuarioAutenticadoService,
+            ApplicationEventPublisher applicationEventPublisher
     ) {
         this.agendamentoRepository = agendamentoRepository;
+        this.usuarioRepository = usuarioRepository;
         this.usuarioAutenticadoService = usuarioAutenticadoService;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     public List<Agendamento> listarPorPaciente(UUID idPaciente) {
@@ -62,6 +73,7 @@ public class AgendamentoService {
         );
     }
 
+    @Transactional
     public Agendamento registrarConsulta(RegistrarConsultaInput input) {
         // Verifica se a data e hora da consulta é futura
         validaDataHoraFutura(input.dataHora());
@@ -78,9 +90,14 @@ public class AgendamentoService {
                 .observacoes(input.observacoes())
                 .build();
 
-        return agendamentoRepository.save(novoAgendamento);
+        Agendamento agendamentoSalvo = agendamentoRepository.save(novoAgendamento);
+
+        publicarEventoConsulta(agendamentoSalvo, ConsultaEvento.TIPO_CRIADA);
+
+        return agendamentoSalvo;
     }
 
+    @Transactional
     public Agendamento editarConsulta(
             UUID id,
             EditarConsultaInput input
@@ -107,7 +124,11 @@ public class AgendamentoService {
             agendamento.setObservacoes(input.observacoes());
         }
 
-        return agendamentoRepository.save(agendamento);
+        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+
+        publicarEventoConsulta(agendamentoSalvo, ConsultaEvento.TIPO_ATUALIZADA);
+
+        return agendamentoSalvo;
     }
 
     private Specification<Agendamento> especificacao(HistoricoConsultaFiltro filtro, UsuarioPrincipal principal) {
@@ -155,6 +176,7 @@ public class AgendamentoService {
         return agendamentoRepository.findById(id).orElseThrow(() -> new ConsultaNaoEncontradaException(id));
     }
 
+    @Transactional
     public Agendamento cancelarConsulta(UUID id) {
         Agendamento agendamento = buscarConsulta(id);
 
@@ -162,7 +184,36 @@ public class AgendamentoService {
         validarConsultaAgendada(agendamento);
         agendamento.setStatus(StatusAgendamento.CANCELADA);
 
-        return agendamentoRepository.save(agendamento);
+        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+
+        publicarEventoConsulta(agendamentoSalvo, ConsultaEvento.TIPO_ATUALIZADA);
+
+        return agendamentoSalvo;
+    }
+
+    // Envio ao RabbitMQ só ocorre após o commit, via ConsultaEventoListener (AFTER_COMMIT).
+    private void publicarEventoConsulta(Agendamento agendamento, String tipoEvento) {
+        Usuario paciente = usuarioRepository.findById(agendamento.getPacienteId()).orElse(null);
+        Usuario medico = usuarioRepository.findById(agendamento.getMedicoId()).orElse(null);
+
+        ConsultaEvento evento = new ConsultaEvento(
+                UUID.randomUUID(),
+                tipoEvento,
+                agendamento.getId(),
+                agendamento.getPacienteId(),
+                paciente != null ? paciente.getNome() : null,
+                paciente != null ? paciente.getEmail() : null,
+                agendamento.getMedicoId(),
+                medico != null ? medico.getNome() : null,
+                medico != null ? medico.getEmail() : null,
+                agendamento.getDataHora(),
+                agendamento.getEspecialidade(),
+                agendamento.getObservacoes(),
+                agendamento.getStatus().name(),
+                OffsetDateTime.now()
+        );
+
+        applicationEventPublisher.publishEvent(evento);
     }
 
 }
