@@ -9,8 +9,9 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.amqp.rabbit.listener.ConditionalRejectingErrorHandler;
 import org.springframework.boot.amqp.autoconfigure.SimpleRabbitListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -65,7 +66,7 @@ public class RabbitMqConfig {
 
     @Bean
     public MessageConverter jackson2JsonMessageConverter() {
-        return new Jackson2JsonMessageConverter();
+        return new JacksonJsonMessageConverter();
     }
 
     @Bean
@@ -78,6 +79,14 @@ public class RabbitMqConfig {
         configurer.configure(factory, connectionFactory);
         factory.setMessageConverter(jackson2JsonMessageConverter);
         factory.setDefaultRequeueRejected(false);
+        factory.setErrorHandler(new ConditionalRejectingErrorHandler());
+        factory.setAdviceChain(
+                org.springframework.amqp.rabbit.config.RetryInterceptorBuilder.stateless()
+                        .maxRetries(3)
+                        .backOffOptions(1000L, 2.0, 8000L)
+                        .recoverer(new org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer())
+                        .build()
+        );
         return factory;
     }
 }
