@@ -1,0 +1,26 @@
+type Query {
+    notificacoesPorPaciente: [Notificacao!]!
+    notificacoesPorConsulta(idConsulta: ID!): [Notificacao!]!
+}
+
+type Notificacao {
+    id: ID!
+    eventId: ID!
+    consultaId: ID!
+    pacienteId: ID!
+    pacienteNome: String!
+    pacienteEmail: String!
+    medicoNome: String
+    dataConsulta: String!
+    motivo: String
+    status: StatusNotificacao!
+    dataNotificacao: String
+    createdAt: String!
+    updatedAt: String!
+}
+
+enum StatusNotificacao {
+    ENVIADA
+    FALHA
+    PENDENTE
+}

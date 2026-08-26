@@ -27,7 +27,7 @@ public class EmailNotificacaoSender implements NotificacaoSender {
     }
 
     @Override
-    public void enviarLembrete(ConsultaEvento evento) {
+    public void enviar(ConsultaEvento evento) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(emailProperties.getFrom());
@@ -44,20 +44,4 @@ public class EmailNotificacaoSender implements NotificacaoSender {
         }
     }
 
-    private String construirMensagem(ConsultaEvento evento) {
-        return String.format(
-                "Olá %s,\n\n" +
-                "Este é um lembrete de sua consulta marcada.\n\n" +
-                "Detalhes da Consulta:\n" +
-                "- Médico: %s\n" +
-                "- Data e Hora: %s\n" +
-                "- Especialidade: %s\n\n" +
-                "Por favor, compareça com 10 minutos de antecedência.\n\n" +
-                "Atenciosamente,\nHospital System",
-                evento.pacienteNome(),
-                evento.medicoNome(),
-                evento.dataHora(),
-                evento.especialidade()
-        );
-    }
 }

@@ -17,26 +17,10 @@ public class MockNotificacaoSender implements NotificacaoSender {
     private static final Logger log = LoggerFactory.getLogger(MockNotificacaoSender.class);
 
     @Override
-    public void enviarLembrete(ConsultaEvento evento) {
+    public void enviar(ConsultaEvento evento) {
         String mensagem = construirMensagem(evento);
         log.info("[MOCK NOTIFICAÇÃO] Lembrete enviado para paciente: {}\n{}", 
                 evento.pacienteNome(), mensagem);
     }
 
-    private String construirMensagem(ConsultaEvento evento) {
-        return String.format(
-                "Olá %s,\n\n" +
-                "Este é um lembrete de sua consulta marcada.\n\n" +
-                "Detalhes da Consulta:\n" +
-                "- Médico: %s\n" +
-                "- Data e Hora: %s\n" +
-                "- Especialidade: %s\n\n" +
-                "Por favor, compareça com 10 minutos de antecedência.\n\n" +
-                "Atenciosamente,\nHospital System",
-                evento.pacienteNome(),
-                evento.medicoNome(),
-                evento.dataHora(),
-                evento.especialidade()
-        );
-    }
 }
