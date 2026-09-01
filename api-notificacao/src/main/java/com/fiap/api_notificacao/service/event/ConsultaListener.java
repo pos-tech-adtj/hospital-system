@@ -31,7 +31,11 @@ public class ConsultaListener {
                     evento.medicoId(),
                     evento.dataHora()
             );
-            consultaNotificacaoService.processar(evento);
+            if (ConsultaEvento.TIPO_CRIADA.equals(evento.tipoEvento())
+                    || ConsultaEvento.TIPO_ATUALIZADA.equals(evento.tipoEvento())
+                    || ConsultaEvento.TIPO_LEMBRETE.equals(evento.tipoEvento())) {
+                consultaNotificacaoService.processar(evento);
+            }
         } catch (Exception e) {
             log.error(
                     "evento_falhou eventId={} tipoEvento={} consultaId={} status=erro",

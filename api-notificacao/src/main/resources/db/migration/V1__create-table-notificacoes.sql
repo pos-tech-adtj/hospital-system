@@ -3,6 +3,8 @@ CREATE TYPE status_enum AS ENUM ('PENDENTE', 'ENVIADA', 'FALHA');
 CREATE TABLE notificacoes
 (
     id               UUID PRIMARY KEY,
+    event_id         UUID         NOT NULL UNIQUE,
+    consulta_id      UUID         NOT NULL,
     paciente_id      UUID         NOT NULL,
     paciente_nome    VARCHAR(255) NOT NULL,
     paciente_email   VARCHAR(255) NOT NULL,
@@ -18,6 +20,7 @@ CREATE TABLE notificacoes
 
 CREATE INDEX idx_paciente_id ON notificacoes (paciente_id);
 CREATE INDEX idx_paciente_email ON notificacoes (paciente_email);
+CREATE INDEX idx_consulta_id ON notificacoes (consulta_id);
 CREATE INDEX idx_status ON notificacoes (status);
 CREATE INDEX idx_data_consulta ON notificacoes (data_consulta);
 CREATE INDEX idx_data_notificacao ON notificacoes (data_notificacao);

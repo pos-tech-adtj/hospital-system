@@ -30,7 +30,7 @@ public class AgendamentoResolver {
     }
 
     @MutationMapping
-    @PreAuthorize("hasRole('ROLE_ENFERMEIRO')")
+    @PreAuthorize("hasAnyRole('ROLE_MEDICO', 'ROLE_ENFERMEIRO')")
     public Agendamento registrarConsulta(@Valid @Argument RegistrarConsultaInput input) {
         return agendamentoService.registrarConsulta(input);
     }
