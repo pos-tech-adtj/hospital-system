@@ -123,10 +123,10 @@ Isso irá:
 
 ## Collections Postman
 
-As collections com os endpoints e exemplos de request estão na pasta [`postman/`](./postman), na raiz do projeto:
+Importe os exports da pasta [`postman/`](./postman) na raiz do projeto:
 
-- [`Hospital-System.postman_collection.json`](./postman/Hospital-System.postman_collection.json)
-- [`Agendamento-Autorizacao.postman_collection.json`](./postman/Agendamento-Autorizacao.postman_collection.json)
+- [`Hospital-System-GraphQL.postman_collection.json`](./postman/Hospital-System-GraphQL.postman_collection.json) — collection oficial, organizada por serviço e perfil.
+- [`Hospital-System-Local.postman_environment.json`](./postman/Hospital-System-Local.postman_environment.json) — ambiente local com host, portas, credenciais e IDs de exemplo.
 
 ## Variáveis de ambiente da aplicação
 
