@@ -1,9 +1,10 @@
 {
   "info": {
-    "_postman_id": "a864ebef-3e37-4d87-80b4-f3024f4c9895",
+    "_postman_id": "3b2bf077-7d83-4161-a19f-9c8b5e40fe08",
     "name": "Hospital System - GraphQL",
     "description": "Collection GraphQL dos serviços de agendamento e notificações. Selecione o ambiente Hospital System - Local antes de executar as requisições.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32794944"
   },
   "item": [
     {
@@ -11,205 +12,716 @@
       "item": [
         {
           "name": "Medico",
-          "auth": {
-            "type": "basic",
-            "basic": [
-              { "key": "username", "value": "{{medico_email}}", "type": "string" },
-              { "key": "password", "value": "{{medico_senha}}", "type": "string" }
-            ]
-          },
           "item": [
             {
               "name": "Query - Usuario autenticado",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { usuarioAutenticado { id nome email tipo authorities } }", "variables": "{}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { usuarioAutenticado { id nome email tipo authorities } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Historico de consultas",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($filter: HistoricoConsultaFiltro) { historicoConsultas(filter: $filter) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"filter\": { \"apenasFuturas\": true }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($filter: HistoricoConsultaFiltro) { historicoConsultas(filter: $filter) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"filter\": { \"apenasFuturas\": true }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Agendamentos por paciente",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($idPaciente: ID!) { agendamentosPorPaciente(idPaciente: $idPaciente) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"idPaciente\": \"{{paciente_id}}\"\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($idPaciente: ID!) { agendamentosPorPaciente(idPaciente: $idPaciente) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idPaciente\": \"{{paciente_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Mutation - Registrar consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "mutation($input: RegistrarConsultaInput!) { registrarConsulta(input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"input\": {\n    \"pacienteId\": \"{{paciente_id}}\",\n    \"medicoId\": \"{{medico_id}}\",\n    \"dataHora\": \"{{data_hora}}\",\n    \"especialidade\": \"Cardiologia\",\n    \"observacoes\": \"Consulta criada pelo Postman\"\n  }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($input: RegistrarConsultaInput!) { registrarConsulta(input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"input\": {\n    \"pacienteId\": \"{{paciente_id}}\",\n    \"medicoId\": \"{{medico_id}}\",\n    \"dataHora\": \"{{data_hora}}\",\n    \"especialidade\": \"Cardiologia\",\n    \"observacoes\": \"Consulta criada pelo Postman\"\n  }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Mutation - Editar consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "mutation($idConsulta: ID!, $input: EditarConsultaInput!) { editarConsulta(idConsulta: $idConsulta, input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\",\n  \"input\": { \"observacoes\": \"Consulta atualizada pelo Postman\" }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($idConsulta: ID!, $input: EditarConsultaInput!) { editarConsulta(idConsulta: $idConsulta, input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\",\n  \"input\": { \"observacoes\": \"Consulta atualizada pelo Postman\" }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Mutation - Confirmar Consulta",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($idConsulta: ID!, $input: EditarConsultaInput!) { editarConsulta(idConsulta: $idConsulta, input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\",\n  \"input\": { \n    \"status\": \"REALIZADA\",\n    \"observacoes\": \"Consulta confirmada pelo Postman\" }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Mutation - Cancelar consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "mutation($idConsulta: ID!) { cancelarConsulta(idConsulta: $idConsulta) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($idConsulta: ID!) { cancelarConsulta(idConsulta: $idConsulta) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             }
-          ]
+          ],
+          "auth": {
+            "type": "basic",
+            "basic": [
+              {
+                "key": "username",
+                "value": "{{medico_email}}",
+                "type": "string"
+              },
+              {
+                "key": "password",
+                "value": "{{medico_senha}}",
+                "type": "string"
+              }
+            ]
+          }
         },
         {
           "name": "Enfermeiro",
-          "auth": {
-            "type": "basic",
-            "basic": [
-              { "key": "username", "value": "{{enfermeiro_email}}", "type": "string" },
-              { "key": "password", "value": "{{enfermeiro_senha}}", "type": "string" }
-            ]
-          },
           "item": [
             {
               "name": "Query - Usuario autenticado",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { usuarioAutenticado { id nome email tipo authorities } }", "variables": "{}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { usuarioAutenticado { id nome email tipo authorities } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Historico de consultas",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($filter: HistoricoConsultaFiltro) { historicoConsultas(filter: $filter) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"filter\": { \"apenasFuturas\": true }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($filter: HistoricoConsultaFiltro) { historicoConsultas(filter: $filter) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"filter\": { \"apenasFuturas\": true }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Agendamentos por paciente",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($idPaciente: ID!) { agendamentosPorPaciente(idPaciente: $idPaciente) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"idPaciente\": \"{{paciente_id}}\"\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($idPaciente: ID!) { agendamentosPorPaciente(idPaciente: $idPaciente) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idPaciente\": \"{{paciente_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Mutation - Registrar consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "mutation($input: RegistrarConsultaInput!) { registrarConsulta(input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"input\": {\n    \"pacienteId\": \"{{paciente_id}}\",\n    \"medicoId\": \"{{medico_id}}\",\n    \"dataHora\": \"{{data_hora}}\",\n    \"especialidade\": \"Cardiologia\",\n    \"observacoes\": \"Consulta criada pelo Postman\"\n  }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($input: RegistrarConsultaInput!) { registrarConsulta(input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"input\": {\n    \"pacienteId\": \"{{paciente_id}}\",\n    \"medicoId\": \"{{medico_id}}\",\n    \"dataHora\": \"{{data_hora}}\",\n    \"especialidade\": \"Cardiologia\",\n    \"observacoes\": \"Consulta criada pelo Postman\"\n  }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Mutation - Editar consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "mutation($idConsulta: ID!, $input: EditarConsultaInput!) { editarConsulta(idConsulta: $idConsulta, input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\",\n  \"input\": { \"observacoes\": \"Consulta atualizada pelo Postman\" }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($idConsulta: ID!, $input: EditarConsultaInput!) { editarConsulta(idConsulta: $idConsulta, input: $input) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\",\n  \"input\": { \"observacoes\": \"Consulta atualizada pelo Postman\" }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Mutation - Cancelar consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "mutation($idConsulta: ID!) { cancelarConsulta(idConsulta: $idConsulta) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($idConsulta: ID!) { cancelarConsulta(idConsulta: $idConsulta) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             }
-          ]
-        },
-        {
-          "name": "Paciente",
+          ],
           "auth": {
             "type": "basic",
             "basic": [
-              { "key": "username", "value": "{{paciente_email}}", "type": "string" },
-              { "key": "password", "value": "{{paciente_senha}}", "type": "string" }
+              {
+                "key": "username",
+                "value": "{{enfermeiro_email}}",
+                "type": "string"
+              },
+              {
+                "key": "password",
+                "value": "{{enfermeiro_senha}}",
+                "type": "string"
+              }
             ]
-          },
+          }
+        },
+        {
+          "name": "Paciente",
           "item": [
             {
               "name": "Query - Usuario autenticado",
               "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "{{paciente_senha}}",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "{{paciente_email}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { usuarioAutenticado { id nome email tipo authorities } }", "variables": "{}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { usuarioAutenticado { id nome email tipo authorities } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Historico das proprias consultas",
               "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "{{paciente_senha}}",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "{{paciente_email}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($filter: HistoricoConsultaFiltro) { historicoConsultas(filter: $filter) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"filter\": { \"apenasFuturas\": true }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($filter: HistoricoConsultaFiltro) { historicoConsultas(filter: $filter) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"filter\": { \"apenasFuturas\": true }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Agendamentos proprios",
               "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "{{paciente_senha}}",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "{{paciente_email}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($idPaciente: ID!) { agendamentosPorPaciente(idPaciente: $idPaciente) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }", "variables": "{\n  \"idPaciente\": \"{{paciente_id}}\"\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($idPaciente: ID!) { agendamentosPorPaciente(idPaciente: $idPaciente) { id medicoId pacienteId dataHora status especialidade observacoes createdAt updatedAt } }",
+                    "variables": "{\n  \"idPaciente\": \"{{paciente_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             }
-          ]
+          ],
+          "auth": {
+            "type": "basic",
+            "basic": [
+              {
+                "key": "username",
+                "value": "{{paciente_email}}",
+                "type": "string"
+              },
+              {
+                "key": "password",
+                "value": "{{paciente_senha}}",
+                "type": "string"
+              }
+            ]
+          }
         },
         {
           "name": "Cenarios de erro",
           "item": [
             {
               "name": "Sem credencial - Usuario autenticado",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Retorna 401 sem credencial', function () {",
+                      "  pm.response.to.have.status(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
-                "auth": { "type": "noauth" },
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { usuarioAutenticado { id } }", "variables": "{}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { usuarioAutenticado { id } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
               },
-              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Retorna 401 sem credencial', function () {", "  pm.response.to.have.status(401);", "});"] } }]
+              "response": []
             },
             {
               "name": "Paciente sem permissao - Registrar consulta",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Retorna erro GraphQL FORBIDDEN', function () {",
+                      "  pm.response.to.have.status(200);",
+                      "  const response = pm.response.json();",
+                      "  pm.expect(response.errors).to.be.an('array').that.is.not.empty;",
+                      "  pm.expect(response.errors[0].extensions.classification).to.eql('FORBIDDEN');",
+                      "});"
+                    ]
+                  }
+                }
+              ],
               "request": {
-                "method": "POST",
                 "auth": {
                   "type": "basic",
                   "basic": [
-                    { "key": "username", "value": "{{paciente_email}}", "type": "string" },
-                    { "key": "password", "value": "{{paciente_senha}}", "type": "string" }
+                    {
+                      "key": "username",
+                      "value": "{{paciente_email}}",
+                      "type": "string"
+                    },
+                    {
+                      "key": "password",
+                      "value": "{{paciente_senha}}",
+                      "type": "string"
+                    }
                   ]
                 },
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "mutation($input: RegistrarConsultaInput!) { registrarConsulta(input: $input) { id } }", "variables": "{\n  \"input\": {\n    \"pacienteId\": \"{{paciente_id}}\",\n    \"medicoId\": \"{{medico_id}}\",\n    \"dataHora\": \"{{data_hora}}\",\n    \"especialidade\": \"Cardiologia\"\n  }\n}" } },
-                "url": "{{host}}:{{agendamento_port}}/graphql"
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "mutation($input: RegistrarConsultaInput!) { registrarConsulta(input: $input) { id } }",
+                    "variables": "{\n  \"input\": {\n    \"pacienteId\": \"{{paciente_id}}\",\n    \"medicoId\": \"{{medico_id}}\",\n    \"dataHora\": \"{{data_hora}}\",\n    \"especialidade\": \"Cardiologia\"\n  }\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{agendamento_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{agendamento_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
               },
-              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Retorna erro GraphQL FORBIDDEN', function () {", "  pm.response.to.have.status(200);", "  const response = pm.response.json();", "  pm.expect(response.errors).to.be.an('array').that.is.not.empty;", "  pm.expect(response.errors[0].extensions.classification).to.eql('FORBIDDEN');", "});"] } }]
+              "response": []
             }
           ]
         }
@@ -220,107 +732,314 @@
       "item": [
         {
           "name": "Medico",
-          "auth": {
-            "type": "basic",
-            "basic": [
-              { "key": "username", "value": "{{medico_email}}", "type": "string" },
-              { "key": "password", "value": "{{medico_senha}}", "type": "string" }
-            ]
-          },
           "item": [
             {
               "name": "Query - Notificacoes por paciente",
               "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "{{paciente_senha}}",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "{{paciente_email}}",
+                      "type": "string"
+                    }
+                  ]
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { notificacoesPorPaciente { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }", "variables": "{}" } },
-                "url": "{{host}}:{{notificacao_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { notificacoesPorPaciente { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{notificacao_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{notificacao_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Notificacoes por consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($idConsulta: ID!) { notificacoesPorConsulta(idConsulta: $idConsulta) { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }", "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}" } },
-                "url": "{{host}}:{{notificacao_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($idConsulta: ID!) { notificacoesPorConsulta(idConsulta: $idConsulta) { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{notificacao_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{notificacao_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             }
-          ]
+          ],
+          "auth": {
+            "type": "basic",
+            "basic": [
+              {
+                "key": "username",
+                "value": "{{medico_email}}",
+                "type": "string"
+              },
+              {
+                "key": "password",
+                "value": "{{medico_senha}}",
+                "type": "string"
+              }
+            ]
+          }
         },
         {
           "name": "Enfermeiro",
-          "auth": {
-            "type": "basic",
-            "basic": [
-              { "key": "username", "value": "{{enfermeiro_email}}", "type": "string" },
-              { "key": "password", "value": "{{enfermeiro_senha}}", "type": "string" }
-            ]
-          },
           "item": [
             {
               "name": "Query - Notificacoes por paciente",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { notificacoesPorPaciente { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }", "variables": "{}" } },
-                "url": "{{host}}:{{notificacao_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { notificacoesPorPaciente { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{notificacao_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{notificacao_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Notificacoes por consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($idConsulta: ID!) { notificacoesPorConsulta(idConsulta: $idConsulta) { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }", "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}" } },
-                "url": "{{host}}:{{notificacao_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($idConsulta: ID!) { notificacoesPorConsulta(idConsulta: $idConsulta) { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{notificacao_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{notificacao_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             }
-          ]
-        },
-        {
-          "name": "Paciente",
+          ],
           "auth": {
             "type": "basic",
             "basic": [
-              { "key": "username", "value": "{{paciente_email}}", "type": "string" },
-              { "key": "password", "value": "{{paciente_senha}}", "type": "string" }
+              {
+                "key": "username",
+                "value": "{{enfermeiro_email}}",
+                "type": "string"
+              },
+              {
+                "key": "password",
+                "value": "{{enfermeiro_senha}}",
+                "type": "string"
+              }
             ]
-          },
+          }
+        },
+        {
+          "name": "Paciente",
           "item": [
             {
               "name": "Query - Minhas notificacoes",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { notificacoesPorPaciente { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }", "variables": "{}" } },
-                "url": "{{host}}:{{notificacao_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { notificacoesPorPaciente { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{notificacao_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{notificacao_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             },
             {
               "name": "Query - Minhas notificacoes por consulta",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query($idConsulta: ID!) { notificacoesPorConsulta(idConsulta: $idConsulta) { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }", "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}" } },
-                "url": "{{host}}:{{notificacao_port}}/graphql"
-              }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query($idConsulta: ID!) { notificacoesPorConsulta(idConsulta: $idConsulta) { id eventId consultaId pacienteId pacienteNome pacienteEmail medicoNome dataConsulta motivo status dataNotificacao createdAt updatedAt } }",
+                    "variables": "{\n  \"idConsulta\": \"{{consulta_id}}\"\n}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{notificacao_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{notificacao_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
+              },
+              "response": []
             }
-          ]
+          ],
+          "auth": {
+            "type": "basic",
+            "basic": [
+              {
+                "key": "username",
+                "value": "{{paciente_email}}",
+                "type": "string"
+              },
+              {
+                "key": "password",
+                "value": "{{paciente_senha}}",
+                "type": "string"
+              }
+            ]
+          }
         },
         {
           "name": "Cenarios de erro",
           "item": [
             {
               "name": "Sem credencial - Notificacoes por paciente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Retorna 401 sem credencial', function () {",
+                      "  pm.response.to.have.status(401);",
+                      "});"
+                    ]
+                  }
+                }
+              ],
               "request": {
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
-                "auth": { "type": "noauth" },
-                "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-                "body": { "mode": "graphql", "graphql": { "query": "query { notificacoesPorPaciente { id } }", "variables": "{}" } },
-                "url": "{{host}}:{{notificacao_port}}/graphql"
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "graphql",
+                  "graphql": {
+                    "query": "query { notificacoesPorPaciente { id } }",
+                    "variables": "{}"
+                  }
+                },
+                "url": {
+                  "raw": "{{host}}:{{notificacao_port}}/graphql",
+                  "host": [
+                    "{{host}}"
+                  ],
+                  "port": "{{notificacao_port}}",
+                  "path": [
+                    "graphql"
+                  ]
+                }
               },
-              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Retorna 401 sem credencial', function () {", "  pm.response.to.have.status(401);", "});"] } }]
+              "response": []
             }
           ]
         }
