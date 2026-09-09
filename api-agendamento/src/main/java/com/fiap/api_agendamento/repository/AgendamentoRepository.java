@@ -19,4 +19,6 @@ public interface AgendamentoRepository
 
         List<Agendamento> findByStatusAndLembreteEnviadoFalseAndDataHoraBetween(
                 StatusAgendamento status, OffsetDateTime inicio, OffsetDateTime fim);
+
+        List<Agendamento> findByStatusAndDataHoraBefore(StatusAgendamento status, OffsetDateTime dataHora);
 }

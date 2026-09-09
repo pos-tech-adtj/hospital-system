@@ -32,7 +32,7 @@ Os dois serviços compartilham a mesma instância do PostgreSQL, mas usam schema
 - Ao criar, editar, cancelar ou identificar uma consulta próxima (lembrete), um evento (`consulta.criada`, `consulta.atualizada` ou `consulta.lembrete`) é publicado **somente após o commit** da transação no banco, evitando notificar alterações que sofreram rollback.
 - O `api-notificacao` consome pela fila `notificacao.consulta.queue`, processa de forma idempotente (dedupe por `eventId`), envia a notificação (mock ou e-mail, configurável) e persiste o resultado.
 - Reprocessamento: até 3 tentativas com backoff exponencial; mensagens que continuam falhando vão para a dead-letter queue `notificacao.consulta.dlq`.
-- Um scheduler no `api-agendamento` varre periodicamente as consultas agendadas nas próximas 24h e dispara o evento de lembrete.
+- Schedulers no `api-agendamento` varrem periodicamente as consultas para disparar lembretes das próximas 24h e cancelar automaticamente consultas com data expirada.
 
 ## Segurança e permissões
 

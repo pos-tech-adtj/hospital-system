@@ -192,6 +192,23 @@ public class AgendamentoService {
     }
 
     @Transactional
+    public void cancelarConsultasExpiradas() {
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        // A janela é propositalmente disjunta da usada no scheduler de lembretes:
+        // aqui entram apenas consultas AGENDADAS com data/hora anterior ao momento atual.
+        List<Agendamento> consultasExpiradas = agendamentoRepository
+                .findByStatusAndDataHoraBefore(StatusAgendamento.AGENDADA, agora);
+
+        for (Agendamento agendamento : consultasExpiradas) {
+            agendamento.setStatus(StatusAgendamento.CANCELADA);
+
+            Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+            publicarEventoConsulta(agendamentoSalvo, ConsultaEvento.TIPO_ATUALIZADA);
+        }
+    }
+
+    @Transactional
     public Agendamento cancelarConsulta(UUID id) {
         Agendamento agendamento = buscarConsulta(id);
 
