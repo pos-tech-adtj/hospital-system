@@ -30,13 +30,13 @@ public class AgendamentoResolver {
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('ROLE_MEDICO', 'ROLE_ENFERMEIRO')")
+    @PreAuthorize("hasAnyRole('MEDICO', 'ENFERMEIRO')")
     public Agendamento registrarConsulta(@Valid @Argument RegistrarConsultaInput input) {
         return agendamentoService.registrarConsulta(input);
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('ROLE_MEDICO', 'ROLE_ENFERMEIRO')")
+    @PreAuthorize("hasAnyRole('MEDICO', 'ENFERMEIRO')")
     public Agendamento editarConsulta(
             @Argument UUID idConsulta,
             @Valid @Argument EditarConsultaInput input
@@ -45,7 +45,7 @@ public class AgendamentoResolver {
     }
 
     @MutationMapping
-    @PreAuthorize("hasAnyRole('ROLE_MEDICO', 'ROLE_ENFERMEIRO')")
+    @PreAuthorize("hasAnyRole('MEDICO', 'ENFERMEIRO')")
     public Agendamento cancelarConsulta(@Argument UUID idConsulta) {
         return agendamentoService.cancelarConsulta(idConsulta);
     }

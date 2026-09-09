@@ -1,63 +1,143 @@
-# Hospital System - Tech Challenge FIAP Fase 3
+# Hospital System - Tech Challenge FIAP
+
+Backend para gerenciamento de agendamento de consultas hospitalares, com autenticação por perfil de usuário, consulta de histórico médico via GraphQL e envio de lembretes automáticos via comunicação assíncrona, desenvolvido como tech challenge da FIAP (Fase 3).
 
 ## Arquitetura
 
-O projeto possui dois serviços Spring Boot:
+O projeto é composto por dois microsserviços Spring Boot independentes, cada um com seu próprio schema no banco e sua própria API GraphQL:
 
-- `api-agendamento` (porta `8081`): autenticação, cadastro/edição de consultas e histórico via GraphQL.
-- `api-notificacao` (porta `8082`): consumo de eventos RabbitMQ, envio de lembretes e consulta das notificações via GraphQL.
+| Serviço | Porta | Responsabilidade |
+|---|---|---|
+| `api-agendamento` | `8081` | Autenticação, cadastro/edição/cancelamento de consultas e consulta do histórico médico via GraphQL. Publica eventos no RabbitMQ quando uma consulta é criada, atualizada ou está próxima (lembrete). |
+| `api-notificacao` | `8082` | Consome os eventos do RabbitMQ, registra e envia os lembretes aos pacientes, e expõe consulta das notificações via GraphQL. |
 
-Os serviços usam PostgreSQL e RabbitMQ. O banco é compartilhado, mas cada serviço possui seu schema: `agendamento` e `notificacao`. O serviço de notificações lê os usuários diretamente de `agendamento.usuarios` para autenticar os mesmos usuários do serviço de agendamento; não existe uma segunda base de usuários.
+Cada serviço segue uma estrutura em camadas:
 
-## Execução
+- `api/graphql` — resolvers GraphQL (controllers)
+- `dto` — objetos de entrada e saída
+- `service` — regras de negócio
+- `domain` — entidades e enums de domínio
+- `repository` — acesso a dados (Spring Data JPA)
+- `security` — autenticação e principal do usuário autenticado
+- `config` — configurações de segurança, GraphQL, RabbitMQ e scheduler
+- `exception` — exceções de domínio e tratamento de erros do GraphQL
 
-Pré-requisitos: Docker e Docker Compose.
+Os dois serviços compartilham a mesma instância do PostgreSQL, mas usam schemas isolados (`agendamento` e `notificacao`) — não há acoplamento de tabelas entre eles. O `api-notificacao` lê os usuários (para autenticação) a partir das mesmas linhas gravadas pela migration do `api-agendamento`; não existe uma segunda base de usuários.
+
+> **Nota:** o desafio lista um serviço de histórico como opcional, podendo ser separado do agendamento. Optamos por não criar um terceiro microsserviço para isso — o histórico de consultas é exposto como parte do `api-agendamento` (query `historicoConsultas`), já que os dados de consulta pertencem naturalmente a esse domínio.
+
+## Comunicação assíncrona
+
+- Exchange: `consultas.exchange` (topic), publicado pelo `api-agendamento`.
+- Ao criar, editar, cancelar ou identificar uma consulta próxima (lembrete), um evento (`consulta.criada`, `consulta.atualizada` ou `consulta.lembrete`) é publicado **somente após o commit** da transação no banco, evitando notificar alterações que sofreram rollback.
+- O `api-notificacao` consome pela fila `notificacao.consulta.queue`, processa de forma idempotente (dedupe por `eventId`), envia a notificação (mock ou e-mail, configurável) e persiste o resultado.
+- Reprocessamento: até 3 tentativas com backoff exponencial; mensagens que continuam falhando vão para a dead-letter queue `notificacao.consulta.dlq`.
+- Um scheduler no `api-agendamento` varre periodicamente as consultas agendadas nas próximas 24h e dispara o evento de lembrete.
+
+## Segurança e permissões
+
+As APIs GraphQL usam autenticação HTTP Basic e sessão stateless. As permissões por perfil são aplicadas com `@PreAuthorize` do Spring Security e reforçadas na camada de serviço:
+
+| Operação | Médico | Enfermeiro | Paciente |
+|---|---|---|---|
+| `historicoConsultas` | Visualizar tudo | Visualizar tudo | Apenas as próprias consultas |
+| `agendamentosPorPaciente` | Visualizar de qualquer paciente | Visualizar de qualquer paciente | Apenas quando `idPaciente` é o próprio ID |
+| `registrarConsulta` | Registrar | Registrar | Não permitido |
+| `editarConsulta` | Editar | Editar | Não permitido |
+| `cancelarConsulta` | Cancelar | Cancelar | Não permitido |
+| `notificacoesPorPaciente` | Consultar | Consultar | Apenas as próprias notificações |
+| `notificacoesPorConsulta` | Consultar | Consultar | Apenas notificações da própria consulta |
+
+## Endpoints GraphQL
+
+### `api-agendamento` (`http://localhost:8081/graphql`)
+
+| Operação | Tipo | Descrição | Acesso |
+|---|---|---|---|
+| `usuarioAutenticado` | Query | Retorna dados do usuário logado e suas authorities | Autenticado |
+| `historicoConsultas(filter)` | Query | Lista consultas, com filtro opcional por `status` e `apenasFuturas` | Autenticado (paciente vê só as próprias) |
+| `agendamentosPorPaciente(idPaciente)` | Query | Lista consultas de um paciente | Autenticado (paciente só o próprio ID) |
+| `registrarConsulta(input)` | Mutation | Cria uma nova consulta | Médico, Enfermeiro |
+| `editarConsulta(idConsulta, input)` | Mutation | Edita data/status/especialidade/observações de uma consulta | Médico, Enfermeiro |
+| `cancelarConsulta(idConsulta)` | Mutation | Cancela uma consulta agendada | Médico, Enfermeiro |
+
+### `api-notificacao` (`http://localhost:8082/graphql`)
+
+| Operação | Tipo | Descrição | Acesso |
+|---|---|---|---|
+| `notificacoesPorPaciente` | Query | Lista notificações do paciente autenticado | Autenticado |
+| `notificacoesPorConsulta(idConsulta)` | Query | Lista notificações de uma consulta | Autenticado (paciente só as próprias) |
+
+Rotas marcadas como **Autenticado** exigem HTTP Basic Auth (usuário/senha), validado contra os usuários carregados pela migration do `api-agendamento`. As únicas rotas públicas são `/actuator/health` de cada serviço.
+
+## Pré-requisitos
+
+- [Docker](https://www.docker.com/) e Docker Compose instalados
+
+## Como executar
+
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/pos-tech-adtj/hospital-system.git
+```
+
+### 2. Configure as variáveis de ambiente (opcional)
+
+As credenciais padrão já funcionam out-of-the-box. Caso queira customizar, defina as variáveis abaixo (via `.env` ou ambiente):
+
+```env
+# PostgreSQL
+POSTGRES_USER=hospital
+POSTGRES_PASSWORD=hospital
+POSTGRES_DB=hospital_db
+
+# RabbitMQ
+RABBITMQ_USER=hospital
+RABBITMQ_PASSWORD=hospital
+```
+
+### 3. Suba a aplicação com Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-Serviços:
+Isso irá:
+- Subir o PostgreSQL 16 na porta `5432`
+- Subir o RabbitMQ (com painel de gerenciamento) na porta `15672`
+- Buildar as imagens dos dois serviços com Maven e executá-los em containers
+- Iniciar os serviços somente após o banco e o RabbitMQ ficarem saudáveis
+- Executar as migrações do Flyway automaticamente na subida de cada serviço
+- Expor o `api-agendamento` na porta `8081` e o `api-notificacao` na porta `8082`
 
-- Agendamento: `http://localhost:8081/graphql`
-- Notificações: `http://localhost:8082/graphql`
-- Health checks: `http://localhost:8081/actuator/health` e `http://localhost:8082/actuator/health`
-- Painel RabbitMQ: `http://localhost:15672`
+### 4. Acesse a aplicação
 
-As credenciais padrão do ambiente são `hospital`/`hospital` para PostgreSQL e RabbitMQ. Elas podem ser alteradas por variáveis de ambiente. Os usuários da aplicação são carregados pela migration do serviço de agendamento, com senha armazenada usando BCrypt.
+| Recurso | URL |
+|---|---|
+| Agendamento (GraphQL) | `http://localhost:8081/graphql` |
+| Notificações (GraphQL) | `http://localhost:8082/graphql` |
+| Health check - Agendamento | `http://localhost:8081/actuator/health` |
+| Health check - Notificações | `http://localhost:8082/actuator/health` |
+| Painel RabbitMQ | `http://localhost:15672` (usuário/senha: `hospital` / `hospital`) |
 
-## Segurança e permissões
+## Collections Postman
 
-As APIs GraphQL usam autenticação HTTP Basic, sessão stateless e acesso autenticado. As permissões são aplicadas com Spring Security:
+As collections com os endpoints e exemplos de request estão na pasta [`postman/`](./postman), na raiz do projeto:
 
-| Operação | Médico | Enfermeiro | Paciente |
-|---|---|---|---|
-| `historicoConsultas` | Visualizar | Visualizar | Apenas próprias consultas |
-| `agendamentosPorPaciente` | Visualizar | Visualizar | Apenas quando o ID é o próprio |
-| `registrarConsulta` | Registrar | Registrar | Não permitido |
-| `editarConsulta` | Editar | Editar | Não permitido |
-| `cancelarConsulta` | Cancelar | Cancelar | Não permitido |
-| `notificacoesPorPaciente` | Consultar | Consultar | Apenas próprias notificações |
-| `notificacoesPorConsulta` | Consultar | Consultar | Apenas notificações próprias |
+- [`Hospital-System.postman_collection.json`](./postman/Hospital-System.postman_collection.json)
+- [`Agendamento-Autorizacao.postman_collection.json`](./postman/Agendamento-Autorizacao.postman_collection.json)
 
-## GraphQL
+## Variáveis de ambiente da aplicação
 
-O serviço de agendamento disponibiliza `historicoConsultas`, com filtro opcional por status e `apenasFuturas`, além de `agendamentosPorPaciente`, `registrarConsulta`, `editarConsulta` e `cancelarConsulta`.
+Caso queira rodar os serviços fora do Docker Compose, configure as seguintes variáveis:
 
-O serviço de notificações disponibiliza `notificacoesPorPaciente` e `notificacoesPorConsulta`. As notificações são persistidas com os status `PENDENTE`, `ENVIADA` ou `FALHA`.
-
-## Comunicação assíncrona
-
-Após o commit de uma alteração de consulta, o agendamento publica eventos `consulta.criada`, `consulta.atualizada` ou `consulta.lembrete` no exchange `consultas.exchange`. O serviço de notificações consome esses eventos pela fila `notificacao.consulta.queue`, envia a mensagem por mock ou e-mail e registra o resultado.
-
-Um scheduler procura consultas agendadas nas próximas 24 horas e publica o evento de lembrete. A fila possui retry e dead-letter queue para mensagens rejeitadas.
-
-O envio ao RabbitMQ ocorre após o commit; portanto, uma garantia transacional completa entre PostgreSQL e RabbitMQ exigiria um padrão Outbox, que não faz parte da implementação atual.
-
-## Collections
-
-- [Hospital-System.postman_collection.json](collection%20temporaria/Hospital-System.postman_collection.json): health checks, autenticação e operações do agendamento.
-- [Agendamento-Autorizacao.postman_collection.json](postman/Agendamento-Autorizacao.postman_collection.json): validação do isolamento de pacientes.
-- [Notificacao-GraphQL.postman_collection.json](postman/Notificacao-GraphQL.postman_collection.json): consultas do serviço de notificações.
-
-As collections usam autenticação Basic e variáveis para URLs, credenciais e IDs.
+| Variável | Padrão (`api-agendamento`) | Padrão (`api-notificacao`) |
+|---|---|---|
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/hospital_db` | `jdbc:postgresql://localhost:5432/hospital_db` |
+| `SPRING_DATASOURCE_USERNAME` | `hospital` | `hospital` |
+| `SPRING_DATASOURCE_PASSWORD` | `hospital` | `hospital` |
+| `SPRING_RABBITMQ_HOST` | `rabbitmq` | `rabbitmq` |
+| `SPRING_RABBITMQ_USERNAME` | `hospital` | `hospital` |
+| `SPRING_RABBITMQ_PASSWORD` | `hospital` | `hospital` |
+| `SERVER_PORT` | `8081` | `8082` |
