@@ -7,7 +7,7 @@ type Query {
 }
 
 type Mutation {
-    registrarConsulta(input: RegistrarConsultaInput!): Agendamento!
+    registrarConsulta(input: RegistrarConsultaInput!): Agendamento
     editarConsulta(
         idConsulta: ID!
         input: EditarConsultaInput!
